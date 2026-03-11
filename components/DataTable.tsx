@@ -13,13 +13,15 @@ interface DataTableProps {
 }
 
 export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps) {
-  const { projectNames, addProjectName, technologyLayers, addTechnologyLayer } = useTaskStore();
+  const { projectNames, addProjectName, technologyLayers, addTechnologyLayer, userNames, addUserName } = useTaskStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<Task>>({});
   const [showCustomProject, setShowCustomProject] = useState(false);
   const [customProjectName, setCustomProjectName] = useState('');
   const [showCustomTech, setShowCustomTech] = useState(false);
   const [customTechLayer, setCustomTechLayer] = useState('');
+  const [showCustomUser, setShowCustomUser] = useState(false);
+  const [customUserName, setCustomUserName] = useState('');
 
   const getStatusColor = (status: TaskStatus) => {
     switch (status) {
@@ -36,6 +38,8 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
     setCustomProjectName('');
     setShowCustomTech(false);
     setCustomTechLayer('');
+    setShowCustomUser(false);
+    setCustomUserName('');
   };
 
   const handleSave = () => {
@@ -53,6 +57,11 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
       updatedData.technologyLayer = customTechLayer.trim();
     }
     
+    if (showCustomUser && customUserName.trim()) {
+      addUserName(customUserName.trim());
+      updatedData.userName = customUserName.trim();
+    }
+    
     if (updatedData.status === 'Completed' && !updatedData.dateEnded) {
       updatedData.dateEnded = new Date().toISOString().split('T')[0];
     }
@@ -68,6 +77,8 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
     setCustomProjectName('');
     setShowCustomTech(false);
     setCustomTechLayer('');
+    setShowCustomUser(false);
+    setCustomUserName('');
   };
 
   const handleCancel = () => {
@@ -77,6 +88,8 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
     setCustomProjectName('');
     setShowCustomTech(false);
     setCustomTechLayer('');
+    setShowCustomUser(false);
+    setCustomUserName('');
   };
 
   return (
@@ -88,6 +101,7 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Project Name</th>
             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Description</th>
             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tech Layer</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">User Name</th>
             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Date Started</th>
             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Date Ended</th>
@@ -169,6 +183,36 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
                     )}
                   </td>
                   <td className="px-4 py-3">
+                    {!showCustomUser ? (
+                      <select
+                        value={editData.userName || ''}
+                        onChange={(e) => {
+                          if (e.target.value === '__custom__') {
+                            setShowCustomUser(true);
+                            setCustomUserName('');
+                          } else {
+                            setEditData({ ...editData, userName: e.target.value });
+                          }
+                        }}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      >
+                        <option value="">Select user</option>
+                        {userNames.map((name) => (
+                          <option key={name} value={name}>{name}</option>
+                        ))}
+                        <option value="__custom__">+ Add New</option>
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={customUserName}
+                        onChange={(e) => setCustomUserName(e.target.value)}
+                        placeholder="New user name"
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
                     <select
                       value={editData.status || ''}
                       onChange={(e) => setEditData({ ...editData, status: e.target.value as TaskStatus })}
@@ -213,6 +257,7 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
                   <td className="px-4 py-3 text-sm text-gray-800 font-medium">{task.projectName}</td>
                   <td className="px-4 py-3 text-sm text-gray-600">{task.description}</td>
                   <td className="px-4 py-3 text-sm text-gray-600">{task.technologyLayer}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{task.userName}</td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
                       {task.status}

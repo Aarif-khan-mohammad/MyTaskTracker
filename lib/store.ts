@@ -6,11 +6,13 @@ interface TaskStore {
   tasks: Task[];
   projectNames: string[];
   technologyLayers: string[];
+  userNames: string[];
   addTask: (task: Task) => void;
   updateTask: (id: string, task: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   addProjectName: (name: string) => void;
   addTechnologyLayer: (tech: string) => void;
+  addUserName: (name: string) => void;
 }
 
 export const useTaskStore = create<TaskStore>()(
@@ -19,6 +21,7 @@ export const useTaskStore = create<TaskStore>()(
       tasks: [],
       projectNames: ['Elevance', 'CollabOps', 'Ardgha Glass', 'Others'],
       technologyLayers: ['Python', 'UI', 'BFF'],
+      userNames: ['Aarif', 'Geethika'],
       addTask: (task) => set((state) => ({
         tasks: [...state.tasks, task]
       })),
@@ -39,6 +42,12 @@ export const useTaskStore = create<TaskStore>()(
       addTechnologyLayer: (tech) => set((state) => {
         if (!state.technologyLayers.includes(tech)) {
           return { technologyLayers: [...state.technologyLayers, tech] };
+        }
+        return state;
+      }),
+      addUserName: (name) => set((state) => {
+        if (!state.userNames.includes(name)) {
+          return { userNames: [...state.userNames, name] };
         }
         return state;
       }),

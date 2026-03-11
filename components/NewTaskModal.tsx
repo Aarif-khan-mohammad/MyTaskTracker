@@ -13,7 +13,7 @@ interface NewTaskModalProps {
 }
 
 export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalProps) {
-  const { projectNames, addProjectName, technologyLayers, addTechnologyLayer } = useTaskStore();
+  const { projectNames, addProjectName, technologyLayers, addTechnologyLayer, userNames, addUserName } = useTaskStore();
   const [formData, setFormData] = useState({
     projectName: '',
     description: '',
@@ -21,20 +21,25 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
     status: 'To Do' as TaskStatus,
     dateStarted: '',
     dateEnded: '',
+    userName: '',
   });
   const [showCustomProject, setShowCustomProject] = useState(false);
   const [customProjectName, setCustomProjectName] = useState('');
   const [showCustomTech, setShowCustomTech] = useState(false);
   const [customTechLayer, setCustomTechLayer] = useState('');
+  const [showCustomUser, setShowCustomUser] = useState(false);
+  const [customUserName, setCustomUserName] = useState('');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
     const projectName = showCustomProject ? customProjectName : formData.projectName;
+    const userName = showCustomUser ? customUserName : formData.userName;
     if (!projectName.trim()) newErrors.projectName = 'Project name is required';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
     if (!formData.dateStarted) newErrors.dateStarted = 'Start date is required';
+    if (!userName.trim()) newErrors.userName = 'User name is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -45,6 +50,7 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
 
     const projectName = showCustomProject ? customProjectName : formData.projectName;
     const technologyLayer = showCustomTech ? customTechLayer : formData.technologyLayer;
+    const userName = showCustomUser ? customUserName : formData.userName;
     
     if (showCustomProject && customProjectName.trim()) {
       addProjectName(customProjectName.trim());
@@ -53,6 +59,10 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
     if (showCustomTech && customTechLayer.trim()) {
       addTechnologyLayer(customTechLayer.trim());
     }
+    
+    if (showCustomUser && customUserName.trim()) {
+      addUserName(customUserName.trim());
+    }
 
     const daysTaken = calculateDaysTaken(formData.dateStarted, formData.dateEnded);
     const newTask: Task = {
@@ -60,6 +70,7 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
       ...formData,
       projectName,
       technologyLayer,
+      userName,
       daysTaken,
     };
 
@@ -71,11 +82,14 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
       status: 'To Do',
       dateStarted: '',
       dateEnded: '',
+      userName: '',
     });
     setShowCustomProject(false);
     setCustomProjectName('');
     setShowCustomTech(false);
     setCustomTechLayer('');
+    setShowCustomUser(false);
+    setCustomUserName('');
     setErrors({});
     onClose();
   };
@@ -197,6 +211,53 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
               )}
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">User Name</label>
+              {!showCustomUser ? (
+                <select
+                  value={formData.userName}
+                  onChange={(e) => {
+                    if (e.target.value === '__custom__') {
+                      setShowCustomUser(true);
+                      setFormData({ ...formData, userName: '' });
+                    } else {
+                      setFormData({ ...formData, userName: e.target.value });
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select a user</option>
+                  {userNames.map((name) => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                  <option value="__custom__">+ Add New User</option>
+                </select>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customUserName}
+                    onChange={(e) => setCustomUserName(e.target.value)}
+                    placeholder="Enter new user name"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCustomUser(false);
+                      setCustomUserName('');
+                    }}
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+              {errors.userName && <p className="text-red-500 text-sm mt-1">{errors.userName}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
               <select

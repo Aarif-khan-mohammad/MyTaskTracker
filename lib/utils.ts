@@ -27,12 +27,13 @@ export const generateTaskId = (): string => {
 };
 
 export const exportToCSV = (tasks: Task[], filename: string) => {
-  const headers = ['Task ID', 'Project Name', 'Description', 'Technology Layer', 'Status', 'Date Started', 'Date Ended', 'Days Taken'];
+  const headers = ['Task ID', 'Project Name', 'Description', 'Technology Layer', 'User Name', 'Status', 'Date Started', 'Date Ended', 'Days Taken'];
   const rows = tasks.map(task => [
     task.id,
     task.projectName,
     task.description,
     task.technologyLayer,
+    task.userName,
     task.status,
     task.dateStarted,
     task.dateEnded,

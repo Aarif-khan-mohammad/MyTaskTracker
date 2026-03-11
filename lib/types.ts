@@ -10,4 +10,5 @@ export interface Task {
   dateStarted: string;
   dateEnded: string;
   daysTaken: number;
+  userName: string;
 }

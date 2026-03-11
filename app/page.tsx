@@ -15,6 +15,7 @@ export default function Home() {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [statusFilter, setStatusFilter] = useState<TaskStatus[]>([]);
   const [techFilter, setTechFilter] = useState<TechnologyLayer[]>([]);
+  const [userFilter, setUserFilter] = useState<string[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -36,8 +37,9 @@ export default function Home() {
     const matchesMonth = !selectedMonth || filterTasksByMonth([task], selectedMonth).length > 0;
     const matchesStatus = statusFilter.length === 0 || statusFilter.includes(task.status);
     const matchesTech = techFilter.length === 0 || techFilter.includes(task.technologyLayer);
+    const matchesUser = userFilter.length === 0 || userFilter.includes(task.userName);
     
-    return matchesSearch && matchesMonth && matchesStatus && matchesTech;
+    return matchesSearch && matchesMonth && matchesStatus && matchesTech && matchesUser;
   });
 
   const handleExport = () => {
@@ -56,6 +58,14 @@ export default function Home() {
       prev.includes(tech) ? prev.filter(t => t !== tech) : [...prev, tech]
     );
   };
+
+  const toggleUserFilter = (user: string) => {
+    setUserFilter(prev =>
+      prev.includes(user) ? prev.filter(u => u !== user) : [...prev, user]
+    );
+  };
+
+  const uniqueUsers = Array.from(new Set(tasks.map(task => task.userName).filter(Boolean)));
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -137,6 +147,25 @@ export default function Home() {
                 </button>
               ))}
             </div>
+
+            {uniqueUsers.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">User:</span>
+                {uniqueUsers.map((user) => (
+                  <button
+                    key={user}
+                    onClick={() => toggleUserFilter(user)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                      userFilter.includes(user)
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {user}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
