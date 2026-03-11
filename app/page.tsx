@@ -106,7 +106,7 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <Filter size={18} className="text-gray-600" />
               <span className="text-sm font-medium text-gray-700">Status:</span>
-              {(['To Do', 'In Progress', 'Blocked', 'Completed'] as TaskStatus[]).map((status) => (
+              {(['To Do', 'In Progress', 'Completed'] as TaskStatus[]).map((status) => (
                 <button
                   key={status}
                   onClick={() => toggleStatusFilter(status)}

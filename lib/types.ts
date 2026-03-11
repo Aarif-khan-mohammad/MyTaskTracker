@@ -1,5 +1,5 @@
-export type TechnologyLayer = 'Python' | 'UI' | 'BFF';
-export type TaskStatus = 'To Do' | 'In Progress' | 'Blocked' | 'Completed';
+export type TechnologyLayer = 'Python' | 'UI' | 'BFF' | string;
+export type TaskStatus = 'To Do' | 'In Progress' | 'Completed';
 
 export interface Task {
   id: string;

@@ -13,7 +13,7 @@ interface NewTaskModalProps {
 }
 
 export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalProps) {
-  const { projectNames, addProjectName } = useTaskStore();
+  const { projectNames, addProjectName, technologyLayers, addTechnologyLayer } = useTaskStore();
   const [formData, setFormData] = useState({
     projectName: '',
     description: '',
@@ -24,6 +24,8 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
   });
   const [showCustomProject, setShowCustomProject] = useState(false);
   const [customProjectName, setCustomProjectName] = useState('');
+  const [showCustomTech, setShowCustomTech] = useState(false);
+  const [customTechLayer, setCustomTechLayer] = useState('');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -42,9 +44,14 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
     if (!validate()) return;
 
     const projectName = showCustomProject ? customProjectName : formData.projectName;
+    const technologyLayer = showCustomTech ? customTechLayer : formData.technologyLayer;
     
     if (showCustomProject && customProjectName.trim()) {
       addProjectName(customProjectName.trim());
+    }
+    
+    if (showCustomTech && customTechLayer.trim()) {
+      addTechnologyLayer(customTechLayer.trim());
     }
 
     const daysTaken = calculateDaysTaken(formData.dateStarted, formData.dateEnded);
@@ -52,6 +59,7 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
       id: generateTaskId(),
       ...formData,
       projectName,
+      technologyLayer,
       daysTaken,
     };
 
@@ -66,6 +74,8 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
     });
     setShowCustomProject(false);
     setCustomProjectName('');
+    setShowCustomTech(false);
+    setCustomTechLayer('');
     setErrors({});
     onClose();
   };
@@ -146,15 +156,45 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Technology Layer</label>
-              <select
-                value={formData.technologyLayer}
-                onChange={(e) => setFormData({ ...formData, technologyLayer: e.target.value as TechnologyLayer })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Python">Python</option>
-                <option value="UI">UI</option>
-                <option value="BFF">BFF</option>
-              </select>
+              {!showCustomTech ? (
+                <select
+                  value={formData.technologyLayer}
+                  onChange={(e) => {
+                    if (e.target.value === '__custom__') {
+                      setShowCustomTech(true);
+                      setFormData({ ...formData, technologyLayer: 'Python' });
+                    } else {
+                      setFormData({ ...formData, technologyLayer: e.target.value as TechnologyLayer });
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {technologyLayers.map((tech) => (
+                    <option key={tech} value={tech}>{tech}</option>
+                  ))}
+                  <option value="__custom__">+ Add New Technology</option>
+                </select>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customTechLayer}
+                    onChange={(e) => setCustomTechLayer(e.target.value)}
+                    placeholder="Enter new technology"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCustomTech(false);
+                      setCustomTechLayer('');
+                    }}
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
             </div>
 
             <div>
@@ -166,7 +206,6 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
               >
                 <option value="To Do">To Do</option>
                 <option value="In Progress">In Progress</option>
-                <option value="Blocked">Blocked</option>
                 <option value="Completed">Completed</option>
               </select>
             </div>

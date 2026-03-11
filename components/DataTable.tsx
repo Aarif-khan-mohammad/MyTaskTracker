@@ -13,17 +13,18 @@ interface DataTableProps {
 }
 
 export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps) {
-  const { projectNames, addProjectName } = useTaskStore();
+  const { projectNames, addProjectName, technologyLayers, addTechnologyLayer } = useTaskStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<Task>>({});
   const [showCustomProject, setShowCustomProject] = useState(false);
   const [customProjectName, setCustomProjectName] = useState('');
+  const [showCustomTech, setShowCustomTech] = useState(false);
+  const [customTechLayer, setCustomTechLayer] = useState('');
 
   const getStatusColor = (status: TaskStatus) => {
     switch (status) {
       case 'Completed': return 'bg-green-100 text-green-800';
       case 'In Progress': return 'bg-blue-100 text-blue-800';
-      case 'Blocked': return 'bg-red-100 text-red-800';
       case 'To Do': return 'bg-gray-100 text-gray-800';
     }
   };
@@ -33,6 +34,8 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
     setEditData(task);
     setShowCustomProject(false);
     setCustomProjectName('');
+    setShowCustomTech(false);
+    setCustomTechLayer('');
   };
 
   const handleSave = () => {
@@ -43,6 +46,11 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
     if (showCustomProject && customProjectName.trim()) {
       addProjectName(customProjectName.trim());
       updatedData.projectName = customProjectName.trim();
+    }
+    
+    if (showCustomTech && customTechLayer.trim()) {
+      addTechnologyLayer(customTechLayer.trim());
+      updatedData.technologyLayer = customTechLayer.trim();
     }
     
     if (updatedData.status === 'Completed' && !updatedData.dateEnded) {
@@ -58,6 +66,8 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
     setEditData({});
     setShowCustomProject(false);
     setCustomProjectName('');
+    setShowCustomTech(false);
+    setCustomTechLayer('');
   };
 
   const handleCancel = () => {
@@ -65,6 +75,8 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
     setEditData({});
     setShowCustomProject(false);
     setCustomProjectName('');
+    setShowCustomTech(false);
+    setCustomTechLayer('');
   };
 
   return (
@@ -128,15 +140,33 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <select
-                      value={editData.technologyLayer || ''}
-                      onChange={(e) => setEditData({ ...editData, technologyLayer: e.target.value as TechnologyLayer })}
-                      className="w-full px-2 py-1 border rounded text-sm"
-                    >
-                      <option value="Python">Python</option>
-                      <option value="UI">UI</option>
-                      <option value="BFF">BFF</option>
-                    </select>
+                    {!showCustomTech ? (
+                      <select
+                        value={editData.technologyLayer || ''}
+                        onChange={(e) => {
+                          if (e.target.value === '__custom__') {
+                            setShowCustomTech(true);
+                            setCustomTechLayer('');
+                          } else {
+                            setEditData({ ...editData, technologyLayer: e.target.value as TechnologyLayer });
+                          }
+                        }}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      >
+                        {technologyLayers.map((tech) => (
+                          <option key={tech} value={tech}>{tech}</option>
+                        ))}
+                        <option value="__custom__">+ Add New</option>
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={customTechLayer}
+                        onChange={(e) => setCustomTechLayer(e.target.value)}
+                        placeholder="New technology"
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <select
@@ -146,7 +176,6 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
                     >
                       <option value="To Do">To Do</option>
                       <option value="In Progress">In Progress</option>
-                      <option value="Blocked">Blocked</option>
                       <option value="Completed">Completed</option>
                     </select>
                   </td>
