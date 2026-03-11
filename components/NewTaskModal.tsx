@@ -1,0 +1,165 @@
+'use client';
+
+import { useState } from 'react';
+import { X } from 'lucide-react';
+import { Task, TechnologyLayer, TaskStatus } from '@/lib/types';
+import { generateTaskId, calculateDaysTaken } from '@/lib/utils';
+
+interface NewTaskModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (task: Task) => void;
+}
+
+export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalProps) {
+  const [formData, setFormData] = useState({
+    projectName: '',
+    description: '',
+    technologyLayer: 'Python' as TechnologyLayer,
+    status: 'To Do' as TaskStatus,
+    dateStarted: '',
+    dateEnded: '',
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.projectName.trim()) newErrors.projectName = 'Project name is required';
+    if (!formData.description.trim()) newErrors.description = 'Description is required';
+    if (!formData.dateStarted) newErrors.dateStarted = 'Start date is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    const daysTaken = calculateDaysTaken(formData.dateStarted, formData.dateEnded);
+    const newTask: Task = {
+      id: generateTaskId(),
+      ...formData,
+      daysTaken,
+    };
+
+    onSave(newTask);
+    setFormData({
+      projectName: '',
+      description: '',
+      technologyLayer: 'Python',
+      status: 'To Do',
+      dateStarted: '',
+      dateEnded: '',
+    });
+    setErrors({});
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800">New Task</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <X size={24} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+            <input
+              type="text"
+              value={formData.projectName}
+              onChange={(e) => setFormData({ ...formData, projectName: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {errors.projectName && <p className="text-red-500 text-sm mt-1">{errors.projectName}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Task Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Technology Layer</label>
+              <select
+                value={formData.technologyLayer}
+                onChange={(e) => setFormData({ ...formData, technologyLayer: e.target.value as TechnologyLayer })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Python">Python</option>
+                <option value="UI">UI</option>
+                <option value="BFF">BFF</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value as TaskStatus })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="To Do">To Do</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Blocked">Blocked</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date Started</label>
+              <input
+                type="date"
+                value={formData.dateStarted}
+                onChange={(e) => setFormData({ ...formData, dateStarted: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.dateStarted && <p className="text-red-500 text-sm mt-1">{errors.dateStarted}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date Ended</label>
+              <input
+                type="date"
+                value={formData.dateEnded}
+                onChange={(e) => setFormData({ ...formData, dateEnded: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 mt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Create Task
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
