@@ -195,6 +195,15 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
             </div>
           </div>
 
+          {formData.dateStarted && formData.dateEnded && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+              <p className="text-sm text-blue-800">
+                <span className="font-semibold">Days Taken (excluding weekends):</span>{' '}
+                <span className="text-lg font-bold">{calculateDaysTaken(formData.dateStarted, formData.dateEnded)}</span> business days
+              </p>
+            </div>
+          )}
+
           <div className="flex justify-end gap-3 mt-6">
             <button
               type="button"

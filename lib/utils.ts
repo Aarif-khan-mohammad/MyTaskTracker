@@ -2,8 +2,11 @@ import { Task } from './types';
 
 export const calculateDaysTaken = (dateStarted: string, dateEnded: string): number => {
   if (!dateStarted || !dateEnded) return 0;
-  const start = new Date(dateStarted);
-  const end = new Date(dateEnded);
+  
+  const start = new Date(dateStarted + 'T00:00:00');
+  const end = new Date(dateEnded + 'T00:00:00');
+  
+  if (start > end) return 0;
   
   let count = 0;
   const current = new Date(start);
