@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { Task, TechnologyLayer, TaskStatus } from '@/lib/types';
 import { generateTaskId, calculateDaysTaken } from '@/lib/utils';
+import { useTaskStore } from '@/lib/store';
 
 interface NewTaskModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface NewTaskModalProps {
 }
 
 export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalProps) {
+  const { projectNames, addProjectName } = useTaskStore();
   const [formData, setFormData] = useState({
     projectName: '',
     description: '',
@@ -20,12 +22,15 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
     dateStarted: '',
     dateEnded: '',
   });
+  const [showCustomProject, setShowCustomProject] = useState(false);
+  const [customProjectName, setCustomProjectName] = useState('');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.projectName.trim()) newErrors.projectName = 'Project name is required';
+    const projectName = showCustomProject ? customProjectName : formData.projectName;
+    if (!projectName.trim()) newErrors.projectName = 'Project name is required';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
     if (!formData.dateStarted) newErrors.dateStarted = 'Start date is required';
     setErrors(newErrors);
@@ -36,10 +41,17 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
     e.preventDefault();
     if (!validate()) return;
 
+    const projectName = showCustomProject ? customProjectName : formData.projectName;
+    
+    if (showCustomProject && customProjectName.trim()) {
+      addProjectName(customProjectName.trim());
+    }
+
     const daysTaken = calculateDaysTaken(formData.dateStarted, formData.dateEnded);
     const newTask: Task = {
       id: generateTaskId(),
       ...formData,
+      projectName,
       daysTaken,
     };
 
@@ -52,6 +64,8 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
       dateStarted: '',
       dateEnded: '',
     });
+    setShowCustomProject(false);
+    setCustomProjectName('');
     setErrors({});
     onClose();
   };
@@ -71,12 +85,50 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
-            <input
-              type="text"
-              value={formData.projectName}
-              onChange={(e) => setFormData({ ...formData, projectName: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            {!showCustomProject ? (
+              <div className="space-y-2">
+                <select
+                  value={formData.projectName}
+                  onChange={(e) => {
+                    if (e.target.value === '__custom__') {
+                      setShowCustomProject(true);
+                      setFormData({ ...formData, projectName: '' });
+                    } else {
+                      setFormData({ ...formData, projectName: e.target.value });
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select a project</option>
+                  {projectNames.map((name) => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                  <option value="__custom__">+ Add New Project</option>
+                </select>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customProjectName}
+                    onChange={(e) => setCustomProjectName(e.target.value)}
+                    placeholder="Enter new project name"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCustomProject(false);
+                      setCustomProjectName('');
+                    }}
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
             {errors.projectName && <p className="text-red-500 text-sm mt-1">{errors.projectName}</p>}
           </div>
 

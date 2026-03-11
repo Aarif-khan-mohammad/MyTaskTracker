@@ -4,8 +4,19 @@ export const calculateDaysTaken = (dateStarted: string, dateEnded: string): numb
   if (!dateStarted || !dateEnded) return 0;
   const start = new Date(dateStarted);
   const end = new Date(dateEnded);
-  const diff = Math.abs(end.getTime() - start.getTime());
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  
+  let count = 0;
+  const current = new Date(start);
+  
+  while (current <= end) {
+    const dayOfWeek = current.getDay();
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      count++;
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  
+  return count;
 };
 
 export const generateTaskId = (): string => {

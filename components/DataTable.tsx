@@ -4,6 +4,7 @@ import { Task, TaskStatus, TechnologyLayer } from '@/lib/types';
 import { Trash2, Edit2, Check, X } from 'lucide-react';
 import { useState } from 'react';
 import { calculateDaysTaken } from '@/lib/utils';
+import { useTaskStore } from '@/lib/store';
 
 interface DataTableProps {
   tasks: Task[];
@@ -12,8 +13,11 @@ interface DataTableProps {
 }
 
 export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps) {
+  const { projectNames, addProjectName } = useTaskStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<Task>>({});
+  const [showCustomProject, setShowCustomProject] = useState(false);
+  const [customProjectName, setCustomProjectName] = useState('');
 
   const getStatusColor = (status: TaskStatus) => {
     switch (status) {
@@ -27,12 +31,19 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
   const handleEdit = (task: Task) => {
     setEditingId(task.id);
     setEditData(task);
+    setShowCustomProject(false);
+    setCustomProjectName('');
   };
 
   const handleSave = () => {
     if (!editingId) return;
     
     let updatedData = { ...editData };
+    
+    if (showCustomProject && customProjectName.trim()) {
+      addProjectName(customProjectName.trim());
+      updatedData.projectName = customProjectName.trim();
+    }
     
     if (updatedData.status === 'Completed' && !updatedData.dateEnded) {
       updatedData.dateEnded = new Date().toISOString().split('T')[0];
@@ -45,11 +56,15 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
     onUpdate(editingId, updatedData);
     setEditingId(null);
     setEditData({});
+    setShowCustomProject(false);
+    setCustomProjectName('');
   };
 
   const handleCancel = () => {
     setEditingId(null);
     setEditData({});
+    setShowCustomProject(false);
+    setCustomProjectName('');
   };
 
   return (
@@ -75,12 +90,34 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
                 <>
                   <td className="px-4 py-3 text-sm text-gray-600">{task.id}</td>
                   <td className="px-4 py-3">
-                    <input
-                      type="text"
-                      value={editData.projectName || ''}
-                      onChange={(e) => setEditData({ ...editData, projectName: e.target.value })}
-                      className="w-full px-2 py-1 border rounded text-sm"
-                    />
+                    {!showCustomProject ? (
+                      <select
+                        value={editData.projectName || ''}
+                        onChange={(e) => {
+                          if (e.target.value === '__custom__') {
+                            setShowCustomProject(true);
+                            setCustomProjectName('');
+                          } else {
+                            setEditData({ ...editData, projectName: e.target.value });
+                          }
+                        }}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      >
+                        <option value="">Select project</option>
+                        {projectNames.map((name) => (
+                          <option key={name} value={name}>{name}</option>
+                        ))}
+                        <option value="__custom__">+ Add New</option>
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={customProjectName}
+                        onChange={(e) => setCustomProjectName(e.target.value)}
+                        placeholder="New project name"
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <input
