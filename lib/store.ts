@@ -28,6 +28,7 @@ export const useTaskStore = create<TaskStore>()(
       loading: false,
 
       fetchTasks: async () => {
+        if (!supabase) return;
         set({ loading: true });
         const { data, error } = await supabase
           .from('tasks')
@@ -38,11 +39,13 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       addTask: async (task) => {
+        if (!supabase) return;
         const { error } = await supabase.from('tasks').insert([task]);
         if (!error) set((state) => ({ tasks: [task, ...state.tasks] }));
       },
 
       updateTask: async (id, updatedTask) => {
+        if (!supabase) return;
         const { error } = await supabase.from('tasks').update(updatedTask).eq('id', id);
         if (!error) set((state) => ({
           tasks: state.tasks.map((t) => t.id === id ? { ...t, ...updatedTask } : t),
@@ -50,6 +53,7 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       deleteTask: async (id) => {
+        if (!supabase) return;
         const { error } = await supabase.from('tasks').delete().eq('id', id);
         if (!error) set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) }));
       },
