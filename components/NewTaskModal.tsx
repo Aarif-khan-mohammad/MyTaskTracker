@@ -267,6 +267,7 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
               >
                 <option value="To Do">To Do</option>
                 <option value="In Progress">In Progress</option>
+                <option value="In Validation">In Validation</option>
                 <option value="Completed">Completed</option>
               </select>
             </div>

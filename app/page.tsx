@@ -9,7 +9,7 @@ import NewTaskModal from '@/components/NewTaskModal';
 import { exportToCSV, filterTasksByMonth } from '@/lib/utils';
 
 export default function Home() {
-  const { tasks, addTask, updateTask, deleteTask } = useTaskStore();
+  const { tasks, addTask, updateTask, deleteTask, fetchTasks, loading } = useTaskStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('');
@@ -20,6 +20,7 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
+    fetchTasks();
   }, []);
 
   if (!mounted) {
@@ -116,7 +117,7 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <Filter size={18} className="text-gray-600" />
               <span className="text-sm font-medium text-gray-700">Status:</span>
-              {(['To Do', 'In Progress', 'Completed'] as TaskStatus[]).map((status) => (
+              {(['To Do', 'In Progress', 'In Validation', 'Completed'] as TaskStatus[]).map((status) => (
                 <button
                   key={status}
                   onClick={() => toggleStatusFilter(status)}
@@ -170,11 +171,11 @@ export default function Home() {
         </div>
 
         <div className="bg-white rounded-lg p-2">
-          <DataTable
-            tasks={filteredTasks}
-            onUpdate={updateTask}
-            onDelete={deleteTask}
-          />
+          {loading ? (
+            <div className="text-center py-12 text-gray-500">Loading tasks...</div>
+          ) : (
+            <DataTable tasks={filteredTasks} onUpdate={updateTask} onDelete={deleteTask} />
+          )}
         </div>
 
         <div className="mt-6 text-center text-sm text-gray-500">

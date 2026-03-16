@@ -1,15 +1,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Task } from './types';
+import { supabase } from './supabase';
 
 interface TaskStore {
   tasks: Task[];
   projectNames: string[];
   technologyLayers: string[];
   userNames: string[];
-  addTask: (task: Task) => void;
-  updateTask: (id: string, task: Partial<Task>) => void;
-  deleteTask: (id: string) => void;
+  loading: boolean;
+  fetchTasks: () => Promise<void>;
+  addTask: (task: Task) => Promise<void>;
+  updateTask: (id: string, task: Partial<Task>) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
   addProjectName: (name: string) => void;
   addTechnologyLayer: (tech: string) => void;
   addUserName: (name: string) => void;
@@ -22,29 +25,49 @@ export const useTaskStore = create<TaskStore>()(
       projectNames: ['Elevance', 'CollabOps', 'Ardgha Glass', 'Others'],
       technologyLayers: ['Python', 'UI', 'BFF'],
       userNames: ['Aarif', 'Geethika'],
-      addTask: (task) => set((state) => ({
-        tasks: [...state.tasks, task]
-      })),
-      updateTask: (id, updatedTask) => set((state) => ({
-        tasks: state.tasks.map((task) =>
-          task.id === id ? { ...task, ...updatedTask } : task
-        )
-      })),
-      deleteTask: (id) => set((state) => ({
-        tasks: state.tasks.filter((task) => task.id !== id)
-      })),
+      loading: false,
+
+      fetchTasks: async () => {
+        set({ loading: true });
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .order('createdAt', { ascending: false });
+        if (!error && data) set({ tasks: data as Task[] });
+        set({ loading: false });
+      },
+
+      addTask: async (task) => {
+        const { error } = await supabase.from('tasks').insert([task]);
+        if (!error) set((state) => ({ tasks: [task, ...state.tasks] }));
+      },
+
+      updateTask: async (id, updatedTask) => {
+        const { error } = await supabase.from('tasks').update(updatedTask).eq('id', id);
+        if (!error) set((state) => ({
+          tasks: state.tasks.map((t) => t.id === id ? { ...t, ...updatedTask } : t),
+        }));
+      },
+
+      deleteTask: async (id) => {
+        const { error } = await supabase.from('tasks').delete().eq('id', id);
+        if (!error) set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) }));
+      },
+
       addProjectName: (name) => set((state) => {
         if (!state.projectNames.includes(name)) {
           return { projectNames: [...state.projectNames, name] };
         }
         return state;
       }),
+
       addTechnologyLayer: (tech) => set((state) => {
         if (!state.technologyLayers.includes(tech)) {
           return { technologyLayers: [...state.technologyLayers, tech] };
         }
         return state;
       }),
+
       addUserName: (name) => set((state) => {
         if (!state.userNames.includes(name)) {
           return { userNames: [...state.userNames, name] };
@@ -53,7 +76,12 @@ export const useTaskStore = create<TaskStore>()(
       }),
     }),
     {
-      name: 'task-storage',
+      name: 'task-meta-storage',
+      partialize: (state) => ({
+        projectNames: state.projectNames,
+        technologyLayers: state.technologyLayers,
+        userNames: state.userNames,
+      }),
     }
   )
 );
