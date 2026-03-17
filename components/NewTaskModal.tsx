@@ -29,7 +29,6 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
   const [customTechLayer, setCustomTechLayer] = useState('');
   const [showCustomUser, setShowCustomUser] = useState(false);
   const [customUserName, setCustomUserName] = useState('');
-
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
@@ -44,52 +43,26 @@ export default function NewTaskModal({ isOpen, onClose, onSave }: NewTaskModalPr
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     const projectName = showCustomProject ? customProjectName : formData.projectName;
     const technologyLayer = showCustomTech ? customTechLayer : formData.technologyLayer;
     const userName = showCustomUser ? customUserName : formData.userName;
-    
-    if (showCustomProject && customProjectName.trim()) {
-      addProjectName(customProjectName.trim());
-    }
-    
-    if (showCustomTech && customTechLayer.trim()) {
-      addTechnologyLayer(customTechLayer.trim());
-    }
-    
-    if (showCustomUser && customUserName.trim()) {
-      addUserName(customUserName.trim());
-    }
+
+    if (showCustomProject && customProjectName.trim()) await addProjectName(customProjectName.trim());
+    if (showCustomTech && customTechLayer.trim()) await addTechnologyLayer(customTechLayer.trim());
+    if (showCustomUser && customUserName.trim()) await addUserName(customUserName.trim());
 
     const daysTaken = calculateDaysTaken(formData.dateStarted, formData.dateEnded);
-    const newTask: Task = {
-      id: generateTaskId(),
-      ...formData,
-      projectName,
-      technologyLayer,
-      userName,
-      daysTaken,
-    };
+    const newTask: Task = { id: generateTaskId(), ...formData, projectName, technologyLayer, userName, daysTaken };
 
     onSave(newTask);
-    setFormData({
-      projectName: '',
-      description: '',
-      technologyLayer: 'Python',
-      status: 'To Do',
-      dateStarted: '',
-      dateEnded: '',
-      userName: '',
-    });
-    setShowCustomProject(false);
-    setCustomProjectName('');
-    setShowCustomTech(false);
-    setCustomTechLayer('');
-    setShowCustomUser(false);
-    setCustomUserName('');
+    setFormData({ projectName: '', description: '', technologyLayer: 'Python', status: 'To Do', dateStarted: '', dateEnded: '', userName: '' });
+    setShowCustomProject(false); setCustomProjectName('');
+    setShowCustomTech(false); setCustomTechLayer('');
+    setShowCustomUser(false); setCustomUserName('');
     setErrors({});
     onClose();
   };

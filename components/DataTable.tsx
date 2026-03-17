@@ -43,43 +43,32 @@ export default function DataTable({ tasks, onUpdate, onDelete }: DataTableProps)
     setCustomUserName('');
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editingId) return;
-    
     let updatedData = { ...editData };
-    
     if (showCustomProject && customProjectName.trim()) {
-      addProjectName(customProjectName.trim());
+      await addProjectName(customProjectName.trim());
       updatedData.projectName = customProjectName.trim();
     }
-    
     if (showCustomTech && customTechLayer.trim()) {
-      addTechnologyLayer(customTechLayer.trim());
+      await addTechnologyLayer(customTechLayer.trim());
       updatedData.technologyLayer = customTechLayer.trim();
     }
-    
     if (showCustomUser && customUserName.trim()) {
-      addUserName(customUserName.trim());
+      await addUserName(customUserName.trim());
       updatedData.userName = customUserName.trim();
     }
-    
     if (updatedData.status === 'Completed' && !updatedData.dateEnded) {
       updatedData.dateEnded = new Date().toISOString().split('T')[0];
     }
-    
     if (updatedData.dateStarted && updatedData.dateEnded) {
       updatedData.daysTaken = calculateDaysTaken(updatedData.dateStarted, updatedData.dateEnded);
     }
-    
     onUpdate(editingId, updatedData);
-    setEditingId(null);
-    setEditData({});
-    setShowCustomProject(false);
-    setCustomProjectName('');
-    setShowCustomTech(false);
-    setCustomTechLayer('');
-    setShowCustomUser(false);
-    setCustomUserName('');
+    setEditingId(null); setEditData({});
+    setShowCustomProject(false); setCustomProjectName('');
+    setShowCustomTech(false); setCustomTechLayer('');
+    setShowCustomUser(false); setCustomUserName('');
   };
 
   const handleCancel = () => {
