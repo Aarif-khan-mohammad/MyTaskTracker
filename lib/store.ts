@@ -29,12 +29,17 @@ export const useTaskStore = create<TaskStore>()(
 
       fetchTasks: async () => {
         set({ loading: true });
-        const { data, error } = await getSupabase()
-          .from('tasks')
-          .select('*')
-          .order('createdAt', { ascending: false });
-        if (!error && data) set({ tasks: data as Task[] });
-        set({ loading: false });
+        try {
+          const { data, error } = await getSupabase()
+            .from('tasks')
+            .select('*')
+            .order('createdAt', { ascending: false });
+          if (!error && data) set({ tasks: data as Task[] });
+        } catch (e) {
+          console.error('fetchTasks error:', e);
+        } finally {
+          set({ loading: false });
+        }
       },
 
       addTask: async (task) => {
