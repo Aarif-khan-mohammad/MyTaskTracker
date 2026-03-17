@@ -34,7 +34,11 @@ export const useTaskStore = create<TaskStore>()(
             .from('tasks')
             .select('*')
             .order('createdAt', { ascending: false });
-          if (!error && data) set({ tasks: data as Task[] });
+          if (error) {
+            console.error('Supabase fetch error:', error.message);
+          } else if (data) {
+            set({ tasks: data as Task[] });
+          }
         } catch (e) {
           console.error('fetchTasks error:', e);
         } finally {
