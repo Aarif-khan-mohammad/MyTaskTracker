@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Task } from './types';
-import { supabase } from './supabase';
+import { getSupabase } from './supabase';
 
 interface TaskStore {
   tasks: Task[];
@@ -29,7 +29,7 @@ export const useTaskStore = create<TaskStore>()(
 
       fetchTasks: async () => {
         set({ loading: true });
-        const { data, error } = await supabase
+        const { data, error } = await getSupabase()
           .from('tasks')
           .select('*')
           .order('createdAt', { ascending: false });
@@ -38,19 +38,19 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       addTask: async (task) => {
-        const { error } = await supabase.from('tasks').insert([task]);
+        const { error } = await getSupabase().from('tasks').insert([task]);
         if (!error) set((state) => ({ tasks: [task, ...state.tasks] }));
       },
 
       updateTask: async (id, updatedTask) => {
-        const { error } = await supabase.from('tasks').update(updatedTask).eq('id', id);
+        const { error } = await getSupabase().from('tasks').update(updatedTask).eq('id', id);
         if (!error) set((state) => ({
           tasks: state.tasks.map((t) => t.id === id ? { ...t, ...updatedTask } : t),
         }));
       },
 
       deleteTask: async (id) => {
-        const { error } = await supabase.from('tasks').delete().eq('id', id);
+        const { error } = await getSupabase().from('tasks').delete().eq('id', id);
         if (!error) set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) }));
       },
 
